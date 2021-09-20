@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="../style.css">
+    <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
+    <link rel="stylesheet" href="https://jmblog.github.io/color-themes-for-google-code-prettify/themes/tomorrow-night-eighties.min.css">
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vicky - My Code</title>
+</head>
+<body>
+    <header>
+        <a href='/' class="homepage">Thuispagina</a>
+        <a href='/my_code' class="my_code">Mijn Code</a>
+        <a href='/contact' class="contact">Contact</a>
+    </header>
+    <section>
+        <h2>My Code</h2>
+        <p>Code is ook te vinden op<a target="_blank" href="https://github.com/yt-Programmeren"> mijn GitHub</a>!</p>
+        <p>Server-Side code voor een teken programma!</p>
+        <p>We beginnen met NPM-packages te require-en waarmee we een HTML server en een socket server kunnen maken.</p>
+        <pre class="prettyprint">
+const express = require('express');
+const app = express();
+const server = require('http').Server(app);
+const io = require('socket.io')(server);
+const { v4: uuidV4 } = require('uuid');
+        </pre>
+        <p>Daarna beginnen we door wat 'static' files te hosten voor bvb. onze javascript en css.</p> 
+        <pre class="prettyprint">
+app.use(express.static('public'));
+        </pre>
+        <p>Daarna kijken we voor mensen die op de root URL verbinden en sturen hun door naar een nieuwe 'room'.</p>
+        <pre class="prettyprint">
+app.get('/', (req, res) => {
+    res.redirect(uuidV4());
+});
+        </pre>
+        <p>Als ze een URL meegeven met een 'room' linken we hun socket aan de 'Room id'.</p>
+        <pre class="prettyprint">
+app.get('/:room', (req, res) => {
+    res.render('room', { roomId: req.params.room });
+});
+
+io.on('connection', socket => {
+    socket.on('join', roomId => socket.join(roomId));
+});
+        </pre>
+        <p>Elke keer in de client side script als iemand tekent wordt het emit met de socket.</p>
+        <pre class="prettyprint">
+socket.emit('draw', {ROOM_ID, mPos: { x: mouseX, y: mouseY }, pmPos: {x: pmouseX, y: pmouseY}}); 
+        </pre>
+        <p>De server stuurt het vervolgens door aan iedereen die in hetzelfde room zou mogen zitten.</p>
+        <pre class="prettyprint">
+io.on('connection', socket => {
+    socket.on('draw', ({ ROOM_ID, mPos, pmPos }) => {
+        socket.broadcast.to(ROOM_ID).emit('draw', { mPos, pmPos });
+    });
+});    
+        </pre>
+    </section>
+    <footer>©Vicky, 2021</footer>
+
+</body>
+</html>
